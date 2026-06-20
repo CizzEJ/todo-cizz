@@ -110,3 +110,36 @@ def test_list_shows_priority_marker(capsys):
     todo.add("Urgent", priority="high")
     todo.list_todos()
     assert "[!]" in capsys.readouterr().out
+
+
+def test_search_finds_match(capsys):
+    todo.add("Buy milk")
+    todo.add("Fix bug")
+    capsys.readouterr()
+    todo.search("milk")
+    output = capsys.readouterr().out
+    assert "Buy milk" in output
+    assert "Fix bug" not in output
+
+
+def test_search_case_insensitive(capsys):
+    todo.add("Buy Milk")
+    capsys.readouterr()
+    todo.search("milk")
+    assert "Buy Milk" in capsys.readouterr().out
+
+
+def test_search_no_match(capsys):
+    todo.add("Buy milk")
+    capsys.readouterr()
+    todo.search("bug")
+    assert "No todos matching" in capsys.readouterr().out
+
+
+def test_search_shows_priority_and_due(capsys):
+    todo.add("Fix bug", priority="high", due="2026-06-25")
+    capsys.readouterr()
+    todo.search("bug")
+    output = capsys.readouterr().out
+    assert "[high]" in output
+    assert "due 2026-06-25" in output
