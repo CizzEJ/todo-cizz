@@ -17,6 +17,26 @@ def test_add_creates_todo():
     assert len(todos) == 1
     assert todos[0]["text"] == "Buy milk"
     assert todos[0]["done"] is False
+    assert todos[0]["due"] is None
+
+
+def test_add_with_due_date(capsys):
+    todo.add("Submit report", due="2026-06-25")
+    todos = todo.load()
+    assert todos[0]["due"] == "2026-06-25"
+    assert "due 2026-06-25" in capsys.readouterr().out
+
+
+def test_list_shows_due_date(capsys):
+    todo.add("Submit report", due="2026-06-25")
+    todo.list_todos()
+    assert "due 2026-06-25" in capsys.readouterr().out
+
+
+def test_list_no_due_date(capsys):
+    todo.add("No deadline")
+    todo.list_todos()
+    assert "due" not in capsys.readouterr().out
 
 
 def test_list_empty(capsys):
