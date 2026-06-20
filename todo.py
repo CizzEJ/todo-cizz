@@ -15,11 +15,14 @@ def save(todos):
     DATA_FILE.write_text(json.dumps(todos, indent=2))
 
 
-def add(text):
+def add(text, due=None):
     todos = load()
-    todos.append({"text": text, "done": False})
+    todos.append({"text": text, "done": False, "due": due})
     save(todos)
-    print(f"Added: {text}")
+    msg = f"Added: {text}"
+    if due:
+        msg += f" (due {due})"
+    print(msg)
 
 
 def list_todos():
@@ -29,7 +32,8 @@ def list_todos():
         return
     for i, todo in enumerate(todos, 1):
         status = "x" if todo["done"] else " "
-        print(f"[{status}] {i}. {todo['text']}")
+        due = f" (due {todo['due']})" if todo.get("due") else ""
+        print(f"[{status}] {i}. {todo['text']}{due}")
 
 
 def done(index):
@@ -76,9 +80,18 @@ def main():
         COMMANDS[cmd](int(args[1]))
     elif cmd == "add":
         if len(args) < 2:
-            print("Usage: python todo.py add <text>")
+            print("Usage: python todo.py add <text> [--due YYYY-MM-DD]")
             sys.exit(1)
-        add(" ".join(args[1:]))
+        due = None
+        rest = args[1:]
+        if "--due" in rest:
+            idx = rest.index("--due")
+            if idx + 1 >= len(rest):
+                print("Usage: python todo.py add <text> [--due YYYY-MM-DD]")
+                sys.exit(1)
+            due = rest[idx + 1]
+            rest = rest[:idx] + rest[idx + 2:]
+        add(" ".join(rest), due=due)
 
 
 if __name__ == "__main__":
