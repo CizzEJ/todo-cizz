@@ -52,7 +52,12 @@ def remove(index):
     print(f"Removed: {removed['text']}")
 
 
-COMMANDS = {"add": add, "list": list_todos, "done": done, "remove": remove}
+def clear():
+    save([])
+    print("All todos cleared.")
+
+
+COMMANDS = {"add": add, "list": list_todos, "done": done, "remove": remove, "clear": clear}
 
 
 def main():
@@ -62,8 +67,8 @@ def main():
         sys.exit(1)
 
     cmd = args[0]
-    if cmd == "list":
-        list_todos()
+    if cmd in ("list", "clear"):
+        COMMANDS[cmd]()
     elif cmd in ("done", "remove"):
         if len(args) < 2:
             print(f"Usage: python todo.py {cmd} <index>")

@@ -9,6 +9,7 @@ python todo.py add "Buy groceries"
 python todo.py list
 python todo.py done 1
 python todo.py remove 1
+python todo.py clear
 ```
 
 ## Requirements
