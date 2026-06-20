@@ -1,0 +1,60 @@
+import json
+import pytest
+from pathlib import Path
+from unittest.mock import patch
+import todo
+
+
+@pytest.fixture(autouse=True)
+def tmp_data_file(tmp_path, monkeypatch):
+    data_file = tmp_path / "todos.json"
+    monkeypatch.setattr(todo, "DATA_FILE", data_file)
+
+
+def test_add_creates_todo():
+    todo.add("Buy milk")
+    todos = todo.load()
+    assert len(todos) == 1
+    assert todos[0]["text"] == "Buy milk"
+    assert todos[0]["done"] is False
+
+
+def test_list_empty(capsys):
+    todo.list_todos()
+    assert "No todos yet." in capsys.readouterr().out
+
+
+def test_list_shows_todos(capsys):
+    todo.add("Task one")
+    todo.list_todos()
+    assert "Task one" in capsys.readouterr().out
+
+
+def test_done_marks_todo(capsys):
+    todo.add("Finish report")
+    todo.done(1)
+    assert todo.load()[0]["done"] is True
+
+
+def test_done_invalid_index(capsys):
+    todo.done(99)
+    assert "No todo at index" in capsys.readouterr().out
+
+
+def test_remove_deletes_todo():
+    todo.add("Delete me")
+    todo.remove(1)
+    assert todo.load() == []
+
+
+def test_remove_invalid_index(capsys):
+    todo.remove(99)
+    assert "No todo at index" in capsys.readouterr().out
+
+
+def test_clear_removes_all(capsys):
+    todo.add("One")
+    todo.add("Two")
+    todo.clear()
+    assert todo.load() == []
+    assert "All todos cleared." in capsys.readouterr().out
