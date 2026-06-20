@@ -75,7 +75,21 @@ def clear():
     print("All todos cleared.")
 
 
-COMMANDS = {"add": add, "list": list_todos, "done": done, "remove": remove, "clear": clear}
+def search(query):
+    todos = load()
+    query_lower = query.lower()
+    matches = [(i, t) for i, t in enumerate(todos, 1) if query_lower in t["text"].lower()]
+    if not matches:
+        print(f"No todos matching '{query}'.")
+        return
+    for i, todo in matches:
+        status = "x" if todo["done"] else PRIORITY_MARKER.get(todo.get("priority"), " ")
+        due = f" (due {todo['due']})" if todo.get("due") else ""
+        priority = f" [{todo['priority']}]" if todo.get("priority") else ""
+        print(f"[{status}] {i}. {todo['text']}{priority}{due}")
+
+
+COMMANDS = {"add": add, "list": list_todos, "done": done, "remove": remove, "clear": clear, "search": search}
 
 
 def main():
@@ -87,6 +101,11 @@ def main():
     cmd = args[0]
     if cmd in ("list", "clear"):
         COMMANDS[cmd]()
+    elif cmd == "search":
+        if len(args) < 2:
+            print("Usage: python todo.py search <query>")
+            sys.exit(1)
+        search(" ".join(args[1:]))
     elif cmd in ("done", "remove"):
         if len(args) < 2:
             print(f"Usage: python todo.py {cmd} <index>")
