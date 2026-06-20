@@ -15,11 +15,20 @@ def save(todos):
     DATA_FILE.write_text(json.dumps(todos, indent=2))
 
 
-def add(text, due=None):
+PRIORITIES = {"high": 0, "medium": 1, "low": 2}
+PRIORITY_MARKER = {"high": "!", "medium": "~", "low": " "}
+
+
+def add(text, due=None, priority=None):
+    if priority and priority not in PRIORITIES:
+        print(f"Invalid priority '{priority}'. Choose: high, medium, low.")
+        return
     todos = load()
-    todos.append({"text": text, "done": False, "due": due})
+    todos.append({"text": text, "done": False, "due": due, "priority": priority})
     save(todos)
     msg = f"Added: {text}"
+    if priority:
+        msg += f" [{priority}]"
     if due:
         msg += f" (due {due})"
     print(msg)
@@ -30,10 +39,15 @@ def list_todos():
     if not todos:
         print("No todos yet.")
         return
-    for i, todo in enumerate(todos, 1):
-        status = "x" if todo["done"] else " "
+    ranked = sorted(
+        enumerate(todos, 1),
+        key=lambda x: PRIORITIES.get(x[1].get("priority"), 1),
+    )
+    for i, todo in ranked:
+        status = "x" if todo["done"] else PRIORITY_MARKER.get(todo.get("priority"), " ")
         due = f" (due {todo['due']})" if todo.get("due") else ""
-        print(f"[{status}] {i}. {todo['text']}{due}")
+        priority = f" [{todo['priority']}]" if todo.get("priority") else ""
+        print(f"[{status}] {i}. {todo['text']}{priority}{due}")
 
 
 def done(index):
@@ -83,15 +97,20 @@ def main():
             print("Usage: python todo.py add <text> [--due YYYY-MM-DD]")
             sys.exit(1)
         due = None
+        priority = None
         rest = args[1:]
-        if "--due" in rest:
-            idx = rest.index("--due")
-            if idx + 1 >= len(rest):
-                print("Usage: python todo.py add <text> [--due YYYY-MM-DD]")
-                sys.exit(1)
-            due = rest[idx + 1]
-            rest = rest[:idx] + rest[idx + 2:]
-        add(" ".join(rest), due=due)
+        for flag in ("--due", "--priority"):
+            if flag in rest:
+                idx = rest.index(flag)
+                if idx + 1 >= len(rest):
+                    print(f"Usage: python todo.py add <text> [--due YYYY-MM-DD] [--priority high|medium|low]")
+                    sys.exit(1)
+                if flag == "--due":
+                    due = rest[idx + 1]
+                else:
+                    priority = rest[idx + 1]
+                rest = rest[:idx] + rest[idx + 2:]
+        add(" ".join(rest), due=due, priority=priority)
 
 
 if __name__ == "__main__":
